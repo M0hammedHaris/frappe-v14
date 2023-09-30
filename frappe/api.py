@@ -11,7 +11,7 @@ import frappe.handler
 from frappe import _
 from frappe.utils.data import sbool
 from frappe.utils.response import build_response
-
+from . import allowed_resources
 
 def handle():
 	"""
@@ -48,6 +48,15 @@ def handle():
 
 	if len(parts) > 3:
 		name = parts[3]
+
+	if frappe.request.path.find('/api/method/assure')==-1:
+		roles = frappe.get_roles()
+		if not (
+			"Administrator" in roles or 
+			"System Manager"  in roles or 
+			frappe.request.path in allowed_resources.allowed_resources
+		): 
+			frappe.throw(_("Permission Denied"))
 
 	if call == "method":
 		frappe.local.form_dict.cmd = doctype
